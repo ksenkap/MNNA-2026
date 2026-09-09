@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+*.ipynb~ 
+
+# Данные (НЕ грузим на GitHub!)
+data/
+*.warc
+*.warc.gz
+*.csv
+*.tsv
+*.jsonl
+*.parquet
+*.txt
+
+# Модели и чекпоинты
+checkpoints/
+*.pt
+*.pth
+*.bin
+*.onnx
+
+# Colab
+sample_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# DVC
+.dvc/
+*.dvc
