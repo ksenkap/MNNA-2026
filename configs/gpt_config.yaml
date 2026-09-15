@@ -8,11 +8,11 @@ model:
   dropout: 0.1
 
 training:
-  batch_size: 32
+  batch_size: 8
   learning_rate: 3e-4
   weight_decay: 0.01
-  max_epochs: 10
-  warmup_steps: 500
+  max_epochs: 20
+  warmup_steps: 1000
   max_grad_norm: 1.0
   checkpoint_dir: checkpoints/
   log_dir: logs/
