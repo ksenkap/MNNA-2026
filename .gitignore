@@ -44,3 +44,10 @@ sample_data/
 # DVC
 .dvc/
 *.dvc
+
+# Секреты
+.env
+
+# Логи и чекпоинты Lightning
+logs/
+*.ckpt
