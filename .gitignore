@@ -16,7 +16,7 @@ build/
 *.ipynb~ 
 
 # Данные (НЕ грузим на GitHub!)
-data/
+/data/
 *.warc
 *.warc.gz
 *.csv
