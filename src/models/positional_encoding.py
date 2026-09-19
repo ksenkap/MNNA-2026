@@ -5,13 +5,9 @@ import math
 
 class SinusoidalPositionalEncoding(nn.Module):
     """
-    Синусоидальное позиционное кодирование с поддержкой packed batching.
-
-    seq_ids: (batch, seq_len) — номер объекта для каждого токена:
-        0 — PAD
-        1 — первый объект
-        2 — второй объект
-        ...
+    Синусоидальное позиционное кодирование с поддержкой:
+      - packed batching (seq_ids: 0=PAD, 1,2,...=номера объектов),
+      - инференса с KV-кэшем (position_offset — сдвиг позиций).
     """
 
     def __init__(self, d_model: int, max_seq_len: int = 512, dropout: float = 0.1):
@@ -29,10 +25,18 @@ class SinusoidalPositionalEncoding(nn.Module):
         pe = pe.unsqueeze(0)  # (1, max_seq_len, d_model)
         self.register_buffer("pe", pe)
 
-    def forward(self, x: torch.Tensor, seq_ids: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        seq_ids: torch.Tensor,
+        position_offset: int = 0,
+    ) -> torch.Tensor:
         """
         x: (batch, seq_len, d_model)
         seq_ids: (batch, seq_len)
+        position_offset: int — сдвиг позиций (для инференса с KV-кэшем).
+            Например, если в кэше уже 10 токенов, а мы обрабатываем
+            новый токен (seq_len=1), то position_offset=10.
         """
         batch_size, seq_len, _ = x.shape
         device = x.device
@@ -40,17 +44,16 @@ class SinusoidalPositionalEncoding(nn.Module):
         positions = torch.zeros(batch_size, seq_len, dtype=torch.long, device=device)
 
         for b in range(batch_size):
-            pos = 0
+            pos = position_offset
             for i in range(seq_len):
                 sid = seq_ids[b, i].item()
                 if sid == 0:
                     positions[b, i] = 0
-                    pos = 0
                 else:
                     if i > 0 and seq_ids[b, i - 1].item() == sid:
                         pos += 1
                     else:
-                        pos = 0
+                        pos = position_offset
                     positions[b, i] = pos
 
         pe = self.pe[0, positions]  # (batch, seq_len, d_model)

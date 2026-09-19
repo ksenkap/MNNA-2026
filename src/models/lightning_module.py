@@ -11,18 +11,22 @@ class GPTLightningModule(pl.LightningModule):
         self.cfg = cfg
         self.save_hyperparameters(ignore=["cfg"])
 
+        n_kv_heads = cfg.model.get("n_kv_heads", None)
+
         self.model = GPT(
             vocab_size=cfg.model.vocab_size,
             d_model=cfg.model.d_model,
             n_heads=cfg.model.n_heads,
             n_layers=cfg.model.n_layers,
             d_ff=cfg.model.d_ff,
+            n_kv_heads=n_kv_heads,
             max_seq_len=cfg.model.max_seq_len,
             dropout=cfg.model.dropout,
         )
 
     def forward(self, input_ids, seq_ids):
-        return self.model(input_ids, seq_ids)
+        logits, _ = self.model(input_ids, seq_ids, use_cache=False)
+        return logits
 
     def _shared_step(self, batch, stage: str):
         input_ids, seq_ids = batch
@@ -55,10 +59,12 @@ class GPTLightningModule(pl.LightningModule):
         def lr_lambda(current_step):
             if current_step < warmup_steps:
                 return float(current_step) / float(max(1, warmup_steps))
-            progress = (current_step - warmup_steps) / max(1, 100000)
+            progress = (current_step - warmup_steps) / max(1, 200_000)
             return max(0.1, 0.5 * (1.0 + math.cos(math.pi * progress)))
 
-        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
+        scheduler = torch.optim.lr_scheduler.LambdaLR(
+            optimizer, lr_lambda=lr_lambda
+        )
 
         return {
             "optimizer": optimizer,
